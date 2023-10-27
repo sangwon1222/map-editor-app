@@ -1,0 +1,23 @@
+{
+    "common":{
+      "img":[
+        "chevron.png",
+        "tile.png",
+        "pos-icon.png",
+        "edit-tool-bg.png"
+      ]
+    },
+    "map-editor":{
+      "img":[
+        "cube-plant-1.png",
+        "cube-lava-1.png",
+        "cube-fire-1.png",
+        "cube-water-1.png",
+        "cube-wood-1.png",
+        "cube-ice-1.png",
+        "cube-stone-1.png"
+      ]
+    }
+  }
+  
+  
