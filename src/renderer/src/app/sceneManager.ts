@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js';
 import Scene from '@app/scene/scene';
 import { rscManager } from '@app/resource/resourceManager';
-import rsc from '@app/resource/resouce.json';
 import { useLayoutStore } from '@store/layout';
 import MapEditor from '@/app/scene/mapEditor/mapEditor';
 import { find } from 'lodash-es';
+import { useRscStore } from '@/store/rscStore';
 
 export default class SceneManager extends PIXI.Container {
   private mSceneAry: Array<Scene>;
@@ -33,17 +33,17 @@ export default class SceneManager extends PIXI.Container {
   async start() {
     const { name } = this.mSceneAry[0].info;
     try {
-      await rscManager.getHandle.loadCommonRsc(rsc.common);
-      await rscManager.getHandle.loadAllRsc(rsc[name]);
+      
+      await rscManager.getHandle.loadCommonRsc(useRscStore.common);
     } catch (e) {
       console.log(e);
-      location.replace(location.origin);
+      // location.replace(location.origin);
     }
     await this.changeScene(name);
   }
 
   async changeScene(sceneName: string) {
-    await rscManager.getHandle.loadAllRsc(rsc[sceneName]);
+    await rscManager.getHandle.loadAllRsc(useRscStore[sceneName]);
     useLayoutStore.isLoading = true;
 
     this.removeChildren();

@@ -15,7 +15,8 @@ const router = useRouter()
 const refMapNameInput = ref(null)
 const state = reactive({
   openMapNameInput: false,
-  mapName: ''
+  mapName: '',
+  rscImgPreview: {}
 })
 onMounted(async () => {
   useLayoutStore.isLoading = true
@@ -85,33 +86,58 @@ const saveMap = async () => {
   }
 }
 
+const showPreview=(e)=>{
+  const target =  e.currentTarget as HTMLInputElement;
+  const targetFilesArray = Array.from(target.files);
+  targetFilesArray.map((file) => {
+    console.log(file)
+    // state.rscImgPreview[file.name] = URL.createObjectURL(file)
+    state.rscImgPreview[file.name] = file.path
+    });
+}
+
+const submitImg=async ()=>{
+  if( Object.keys(state.rscImgPreview).length < 1) return
+  
+  useLayoutStore.isLoading = true
+
+  console.log(state.rscImgPreview)
+  const upload =await window.api.updateRsc(JSON.stringify(state.rscImgPreview),'map-editor')
+  console.log(upload)
+  useLayoutStore.isLoading = false
+}
+
 const goHome =()=> router.push('/')
 
 </script>
 
 <template>
   <div class="relative flex w-full h-full items-center justify-center bg-black">
-    <div class="fixed left-0 bottom-10 flex w-full justify-between z-20">
-      <div class="flex flex-col">
-        <p>ctrl + mouse move (selected item): Item Placement</p>
-        <p>alt + mouse down+ mouse move : Map Move</p>
-        <p>mouse wheel : Map Scale</p>
+    <ul class="fixed top-0 left-0 flex gap-10 bg-white bg-opacity-50">
+      <li v-for="(v,i) in state.rscImgPreview" class="relative">
+        <p class="absolute top-0 text-white"> {{ i }}</p> 
+        <img :src="v" :alt="v" class="w-auto h-full">
+      </li>
+    </ul>
+
+    <div class="fixed left-0 bottom-10 flex w-full h-100 justify-between z-20">
+      <div class="flex flex-col text-12">
+        <p>ctrl + mouse move: Item Placement</p>
+        <p>alt + drag : Map Move</p>
+        <p>wheel : Map Scale</p>
       </div>
 
       <div class="flex gap-20 px-10">
-      <button 
-        class="rounded border-2 border-white bg-white bg-opacity-50 text-black px-20 py-10 duration-500 hover:bg-gray-700 hover:text-white" 
-        @click="openInputMapName"
-      >
-        저장
-      </button>
+        
+        
+        <div class="flex-col gap-10 h-full" >
+          <input type="file" multiple accept="image/png" @change=showPreview class="border-2 border-red-800"/>
+          <button class="btn" @click="submitImg">이미지 업로드</button>
+        </div>
 
-      <button 
-            class="rounded border-2 border-white bg-white bg-opacity-50 text-black px-20 py-10 duration-500 hover:bg-gray-700 hover:text-white" 
-            @click="goHome"
-          >
-            목록
-        </button>
+        <button class="btn" @click="openInputMapName">저장</button>
+
+        <button class="btn" @click="goHome">목록</button>
       </div>
     </div>
     
@@ -136,3 +162,9 @@ const goHome =()=> router.push('/')
     <canvas id="pixi-canvas" class="relative z-10"/>
   </div>
 </template>
+
+<style lang="less" scoped>
+.btn{
+  @apply flex items-center justify-center rounded border-2 border-white bg-white bg-opacity-50 text-black px-20 py-10 duration-500 hover:bg-gray-700 hover:text-white;
+}
+</style>

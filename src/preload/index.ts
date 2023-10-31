@@ -6,7 +6,6 @@ const api = {
   sendGmail: async (stringData: string) => {
     return new Promise((resolve, _reject) => {
       ipcRenderer.invoke('sendGmail',stringData).then((result) => resolve(result) )
-      ipcRenderer.invoke('deleteAllDB').then((result) => resolve(result) )
     })
   },
   connectDB: async () => {
@@ -58,6 +57,27 @@ const api = {
     })
   },
   
+  updateRsc: async (rscObj: string, sceneName:string)=>{
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('updateRsc',{ rscObj, sceneName }).then((result) => resolve(result) )
+    })
+  },
+
+  getCommonRsc: async ()=>{
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('getCommonRsc').then((result) => resolve(result) )
+    })
+  },
+
+  getEditorRsc: async ()=>{
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('getEditorRsc').then((result) => {
+        resolve(result)
+      } )
+    })
+  },
+
+
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
@@ -85,6 +105,10 @@ interface TypdApi {
   deleteAllDB: any
   recreateDB: any
   updateDB: any
+  updateRsc: any
+  getCommonRsc: any
+  getEditorRsc: any
+  updateEditorRsc:any
 }
 
 declare global {

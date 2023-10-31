@@ -5,6 +5,7 @@ interface TypeDBResponse {
   msg?: string
   data?: any | undefined
   user?: any | undefined
+  json?: any | undefined
 }
 const createTableSQL =
   'CREATE TABLE IF NOT EXISTS mapData (' +
@@ -43,12 +44,40 @@ class DBbase {
         const read = await this.read()
         return { ok: read.ok, data: read.data, msg: read.msg }
       } else {
-        return { ok: false, data: createExcelDB.msg }
+        return { ok: false, data: createExcelDB.msg  }
       }
     } catch (e: any) {
       this.mDB = null
       return { ok: false, data: [], msg: e.message }
     }
+  }
+
+  async getCommonimgRsc(): Promise<{ok:boolean,msg:string,img:any}> {
+    return new Promise((resolve,_reject)=>{
+      const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc"
+        fs.readdir(path+'/common/img', (error, filelist)=>{
+          if(error) return {ok:false, msg:error,img:[]}
+          return resolve({ok:true, msg: '공통 이미지 로드 완료',img: filelist})
+        })
+    })
+  }
+
+  async getCommonRsc(): Promise<{ok:boolean,msg:string,img:any, sound?:any}> {
+    return await this.getCommonimgRsc()
+  }
+
+  async getEditorImgRsc(): Promise<{ok:boolean,msg:string,img:any}> {
+    return new Promise((resolve,_reject)=>{
+    const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc"
+    fs.readdir(path+'/map-editor/img', (error, filelist)=>{
+      if(error) return {ok:false, msg:error,img:[]}
+        return resolve({ok:true, msg: '에디터 이미지 로드 완료',img: filelist})
+      })
+    })
+  }
+
+  async getEditorRsc(): Promise<{ok:boolean,msg:string,img:any, sound?:any}> {
+    return  await this.getEditorImgRsc() 
   }
 
   async createExcelTable(): Promise<TypeDBResponse> {

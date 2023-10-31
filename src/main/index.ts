@@ -3,9 +3,11 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import fs from 'fs'
+import path from 'path';
 import tray from './tray'
 import MailApi from './mail'
 import DBbase from './DBbase'
+import { map } from 'lodash-es'
 
 function createWindow(): void {
   // Create the browser window.
@@ -23,8 +25,11 @@ function createWindow(): void {
     },
   })
   mainWindow.removeMenu()
+
   MailApi.init(ipcMain)
+
   tray.init(mainWindow, icon)
+
   mainWindow.on('close', function (event) {
     event.preventDefault()
     if (tray.quitMode) {
@@ -38,8 +43,13 @@ function createWindow(): void {
   //   event.sender.send('on-test', { first: 'hello' })
   //   return fs.readdirSync('./')
   // })
-  ipcMain.handle('connectDB',async (event: Electron.IpcMainInvokeEvent, _res: any) => {
-    event.sender.send('on-test', { first: 'hello' })
+  ipcMain.handle('getCommonRsc',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
+    return await DBbase.getCommonRsc()
+  })
+  ipcMain.handle('getEditorRsc',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
+    return await DBbase.getEditorRsc()
+  })
+  ipcMain.handle('connectDB',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
     return await DBbase.connectDB()
   })
   ipcMain.handle('readDB',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
@@ -58,7 +68,51 @@ function createWindow(): void {
     await DBbase.dropTable()
     return await DBbase.connectDB()
   })
-  
+
+  ipcMain.handle('updateRsc',async (_event: Electron.IpcMainInvokeEvent, res: any) => {
+    console.log({res})
+    const { rscObj, sceneName } = res
+    const result = [] as string[]
+    
+    const rscObject = JSON.parse(rscObj)
+    const keyAry = Object.keys(rscObject)
+    console.log(rscObject)
+    console.log({keyAry})
+
+    try{
+      for(const rscName of keyAry){
+        const rscPath = rscObject[rscName]
+        const readFile = fs.readFileSync(rscPath);
+        console.log({readFile})
+        const encode = Buffer.from(readFile).toString('base64');
+        console.log({encode})
+
+        const path = `http://lsw.kr/rsc/${sceneName}/img/`
+
+        // console.log('존재하니 img?',path,fs.existsSync(path))
+        // if(!fs.existsSync(path)) fs.mkdirSync(path,{ recursive: true })
+        
+      
+
+        if(fs.existsSync(`${path}${rscName}`)){
+          result.push(rscName)
+        }else{
+          fs.writeFile(`${path}${rscName}`, encode, 'binary', function(err){
+            if(err){
+              console.log({err})
+              result.push(rscName)
+            }
+          });
+        }
+      }
+      return {ok:true, fail: result.length, result};
+    } catch(e) {
+      return {ok:false, fail: result.length, result,msg: e};
+    }
+
+  })
+
+
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()

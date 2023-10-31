@@ -11,7 +11,6 @@ import totalImg from '../../resource/resouce.json';
 import { useItemStore } from '@/store/item';
 const resourceList = totalImg['map-editor'].img;
 
-const resetPosScale = 0;
 const toolWidth = 400;
 export default class EditTool extends PIXI.Container {
   private mMapPosBtn: Button;
@@ -26,8 +25,8 @@ export default class EditTool extends PIXI.Container {
 
   async init() {
     await this.drawLayer();
-    await this.drawItem();
     await this.drawChevron();
+    await this.drawItem();
     await this.drawPosBtn();
   }
 
@@ -67,8 +66,8 @@ export default class EditTool extends PIXI.Container {
 
       const bgWidth = this.mSpriteList[i].width;
       const bgHeight = this.mSpriteList[i].height;
-      const x = i % 3 ? rowId * (this.mSpriteList[i - 1].x + bgWidth) : 120;
-      const y = i ? colId * bgHeight + 10 : 10;
+      const x = i % 3 ? rowId * (this.mSpriteList[i - 1].x + bgWidth) : 10;
+      const y = colId * bgHeight + 10 ;
 
       this.mSpriteList[i].position.set(x + gap / 2, y + gap / 2);
       this.mSpriteList[i].zIndex = 2;
@@ -82,7 +81,7 @@ export default class EditTool extends PIXI.Container {
     this.mChevron = new Button(rscManager.getHandle.getRsc('chevron.png', true), true);
     this.mChevron.rotation = (90 * Math.PI) / 180;
     this.mChevron.zIndex = 2;
-    this.mChevron.position.set(scrWidth - resetPosScale, resetPosScale);
+    this.mChevron.position.set(scrWidth -this.mChevron.width, this.mChevron.height);
     this.mChevron.eventMode = 'static';
     this.mChevron.tint = this.mOpenSpriteLayer ? 0x00ff00 : 0xffffff;
     this.mChevron.onDown = () => {
@@ -102,7 +101,7 @@ export default class EditTool extends PIXI.Container {
     const scrWidth = canvasInfo.width;
     this.mChevron.tint = 0x00ff00;
       const radian =   (-90 * Math.PI) / 180;
-      const openPos = scrWidth - toolWidth + resetPosScale;
+      const openPos = scrWidth - toolWidth -this.mChevron.width;
       const x =  scrWidth - toolWidth;
 
       gsap.to(this.mSpriteLayer, { x, duration: 0.5 });
@@ -114,7 +113,7 @@ export default class EditTool extends PIXI.Container {
     const scrWidth = canvasInfo.width;
     this.mChevron.tint = 0xffffff;
       const radian =  (90 * Math.PI) / 180;
-      const openPos =scrWidth - resetPosScale;
+      const openPos = scrWidth - this.mChevron.width;
       const x = scrWidth;
 
       gsap.to(this.mSpriteLayer, { x, duration: 0.5 });

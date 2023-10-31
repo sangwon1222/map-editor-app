@@ -6,6 +6,7 @@ import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { find } from 'lodash-es'
 import { useLocalStore } from '@/store/localStorage'
+import { useRscStore } from '@/store/rscStore'
 import { setEncode } from '@/util'
 
 
@@ -16,7 +17,12 @@ onMounted(async () => {
   localStorage.removeItem(useLocalStore['selectMapId'])
 
   const {ok,msg,data} = await window.api.connectDB()
+  const commonRsc = await window.api.getCommonRsc()
+  const editorRsc = await window.api.getEditorRsc()
+  
   console.log('DB',{ok,msg})
+  if(commonRsc.ok) useRscStore.common.img = commonRsc.img
+  if(editorRsc.ok) useRscStore['map-editor'].img = editorRsc.img
 
   if(ok) {
     useMapStore.totalMap = data.length

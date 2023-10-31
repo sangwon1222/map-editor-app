@@ -45,6 +45,7 @@ export default class EditItem extends PIXI.Container {
     this.mSprite.anchor.set(0.5);
     this.mSprite.position.set(this.mSprite.width / 2, this.mSprite.height / 2);
     this.mSprite.zIndex = 2;
+
     this.addChild(this.mSprite);
 
     const bg = new PIXI.Graphics();

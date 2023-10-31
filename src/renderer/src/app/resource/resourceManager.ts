@@ -1,4 +1,5 @@
 import Application from "@app/app";
+import * as PIXI from 'pixi.js'
 import { productLink, devLink } from "@/util/config";
 
 export class rscManager {
@@ -23,41 +24,34 @@ export class rscManager {
    * @param src 리소스
    * @param common 여러 씬에서 공동으로 쓰일 경우 true, 아니면 안넣어줘도 된다.
    */
-  public async loadRsc(src: string, sceneName?: string) {
-    const isProduct = process.env.NODE_ENV === "production";
-    const baseUrl = isProduct ? productLink : devLink;
-    const url = `${baseUrl}rsc/${sceneName}/img/${src}`;
-    console.log({url})
-    ipc
-    // const currentSceneName = Application.getHandle.getScene?.info?.name;
-    // const scene = sceneName ? sceneName : currentSceneName;
+  public async loadRsc(src: string, sceneName: string, rscGroup: 'img'|'sound'|'json') {
+    const currentSceneName = Application.getHandle.getScene?.info?.name;
+    const scene = sceneName ? sceneName : currentSceneName;
 
-    // if (this.mRscObject[`${scene}/${src}`]) return;
+    if (this.mRscObject[`${scene}/${src}`]) return;
 
-    // // PIXI.Assets.add(`${scene}/${src}`, src);
-    // PIXI.Assets.add({loadParesr:`${scene}/${src}`,src});
-    // const isProduct = process.env.NODE_ENV === "production";
-    // const baseUrl = isProduct ? productLink : devLink;
-    // const url = `${baseUrl}rsc/${sceneName}/img/${src}`;
-
-    // try {
-    //   this.mRscObject[`${scene}/${src}`] = await PIXI.Assets.load(url);
-    // } catch (e) {
-    //   console.error(e, url);
-    // }
+    const url = `${productLink}rsc/${sceneName}/${rscGroup}/${src}`;
+    console.log(url)
+    
+    try {
+      PIXI.Assets.add({loadParesr:`${scene}/${src}`,src});
+      this.mRscObject[`${scene}/${src}`] = await PIXI.Assets.load(url);
+    } catch (e) {
+      console.error(e, url);
+    }
   }
 
   /** @description 배열로 리소스 리스트를 보내주면 모든 리소스 로드하는 함수 */
   public async loadAllRsc(rscInfoAry: TypeObjectStringAry) {
     const sceneName = Application.getHandle.getScene?.info?.name;
     for (const src of rscInfoAry.img) {
-      await this.loadRsc(src, sceneName);
+      await this.loadRsc(src, sceneName,'img');
     }
   }
 
   public async loadCommonRsc(rscInfoAry: TypeObjectStringAry) {
     for (const src of rscInfoAry.img) {
-      await this.loadRsc(src, "common");
+      await this.loadRsc(src, "common",'img');
     }
   }
 
