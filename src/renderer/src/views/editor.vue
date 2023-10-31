@@ -89,9 +89,15 @@ const saveMap = async () => {
 const showPreview=(e)=>{
   const target =  e.currentTarget as HTMLInputElement;
   const targetFilesArray = Array.from(target.files);
+  const div = document.getElementById('tile-thumnail') as HTMLDivElement;
+  div.innerHTML = '';
   targetFilesArray.map((file) => {
-    console.log(file)
-    // state.rscImgPreview[file.name] = URL.createObjectURL(file)
+    const img = document.createElement("img") as HTMLImageElement;
+    img.style.width='auto'
+    img.style.height='100%'
+    img.src = URL.createObjectURL(file)
+    div.appendChild(img)
+
     state.rscImgPreview[file.name] = file.path
     });
 }
@@ -101,9 +107,7 @@ const submitImg=async ()=>{
   
   useLayoutStore.isLoading = true
 
-  console.log(state.rscImgPreview)
   const upload =await window.api.updateRsc(JSON.stringify(state.rscImgPreview),'map-editor')
-  console.log(upload)
   useLayoutStore.isLoading = false
 }
 
@@ -113,11 +117,7 @@ const goHome =()=> router.push('/')
 
 <template>
   <div class="relative flex w-full h-full items-center justify-center bg-black">
-    <ul class="fixed top-0 left-0 flex gap-10 bg-white bg-opacity-50">
-      <li v-for="(v,i) in state.rscImgPreview" class="relative">
-        <p class="absolute top-0 text-white"> {{ i }}</p> 
-        <img :src="v" :alt="v" class="w-auto h-full">
-      </li>
+    <ul class="fixed top-0 left-0 flex gap-10 bg-white bg-opacity-50" id="tile-thumnail">
     </ul>
 
     <div class="fixed left-0 bottom-10 flex w-full h-100 justify-between z-20">

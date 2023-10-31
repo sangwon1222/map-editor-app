@@ -2,12 +2,10 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import fs from 'fs'
-import path from 'path';
+const fs =  require("fs");
 import tray from './tray'
 import MailApi from './mail'
 import DBbase from './DBbase'
-import { map } from 'lodash-es'
 
 function createWindow(): void {
   // Create the browser window.
@@ -43,12 +41,8 @@ function createWindow(): void {
   //   event.sender.send('on-test', { first: 'hello' })
   //   return fs.readdirSync('./')
   // })
-  ipcMain.handle('getCommonRsc',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
-    return await DBbase.getCommonRsc()
-  })
-  ipcMain.handle('getEditorRsc',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
-    return await DBbase.getEditorRsc()
-  })
+  
+
   ipcMain.handle('connectDB',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
     return await DBbase.connectDB()
   })
@@ -69,41 +63,59 @@ function createWindow(): void {
     return await DBbase.connectDB()
   })
 
+  ipcMain.handle('insertTile',async (_event: Electron.IpcMainInvokeEvent, res: any) => {
+    return await DBbase.insertTile({...res})
+  })
+
+  ipcMain.handle('getTile',async (_event: Electron.IpcMainInvokeEvent, _res: any) => {
+    return await DBbase.getTile()
+  })
+
+  
+
   ipcMain.handle('updateRsc',async (_event: Electron.IpcMainInvokeEvent, res: any) => {
-    console.log({res})
     const { rscObj, sceneName } = res
     const result = [] as string[]
     
     const rscObject = JSON.parse(rscObj)
-    const keyAry = Object.keys(rscObject)
-    console.log(rscObject)
-    console.log({keyAry})
 
     try{
-      for(const rscName of keyAry){
+
+      for(const rscName in rscObject){
         const rscPath = rscObject[rscName]
-        const readFile = fs.readFileSync(rscPath);
-        console.log({readFile})
-        const encode = Buffer.from(readFile).toString('base64');
-        console.log({encode})
-
-        const path = `http://lsw.kr/rsc/${sceneName}/img/`
-
-        // console.log('존재하니 img?',path,fs.existsSync(path))
-        // if(!fs.existsSync(path)) fs.mkdirSync(path,{ recursive: true })
         
-      
+        console.log({rscName,rscPath})
+        fs.readFile(rscPath,(err,data)=>{
+          if(err){
+            console.log({readError: err})
+            return 
+          }
 
-        if(fs.existsSync(`${path}${rscName}`)){
-          result.push(rscName)
-        }else{
-          fs.writeFile(`${path}${rscName}`, encode, 'binary', function(err){
-            if(err){
-              console.log({err})
-              result.push(rscName)
-            }
-          });
-        }
+          //const serverPath = `C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/${sceneName}/img/${rscName}`
+          const serverPath = `http://lsw.kr/rsc/${sceneName}/img/${rscName}`
+          const isExist = fs.existsSync(serverPath)
+          console.log({isExist})
+          
+          if(isExist) result.push(rscName)
+          if(!isExist) {
+            // const buffer = Buffer.from(data).toString('base64');
+            const buffer = Buffer.from(data,'base64')
+            console.log(buffer)
+
+            fs.writeFile(
+              serverPath,
+              buffer,
+              (err,_data)=>{
+                
+                if(err){
+                  console.log({writeError:err})
+                  result.push(rscName)
+                }
+              }
+            );
+          }
+        })
+
       }
       return {ok:true, fail: result.length, result};
     } catch(e) {

@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { rscManager } from '@/app/resource/resourceManager';
-import { useItemStore } from '@/store/item';
+import { useTileStore } from '@/store/tile';
 import { useMapStore } from '@/store/map';
 import { find } from 'lodash-es';
 import gsap from 'gsap';
@@ -53,7 +53,7 @@ export default class TileSprite extends PIXI.Container {
   setItem(itemId: number) {
     if(this.mItemId===itemId) return
     this.mItemId = itemId
-    const option = find(useItemStore.itemData, (e) => e.id === this.mItemId);
+    const option = find(useTileStore.itemData, (e) => e.id === this.mItemId);
     this.mItemSprite.texture = option ? rscManager.getHandle.getRsc(option.name) : null;
     this.mItemSprite.alpha=1
     if (option) {

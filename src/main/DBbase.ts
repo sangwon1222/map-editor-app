@@ -4,6 +4,7 @@ interface TypeDBResponse {
   ok: boolean
   msg?: string
   data?: any | undefined
+  tileData?: any | undefined
   user?: any | undefined
   json?: any | undefined
 }
@@ -12,13 +13,24 @@ const createTableSQL =
   'idx INTEGER NOT NULL UNIQUE, ' +
   'mapName TEXT NOT NULL,' +
   'tileData TEXT NOT NULL,' +
-  'time TEXT NOT NULL,' +
+  'time TEXT,' +
   'password TEXT DEFAULT "000000",' +
   'PRIMARY KEY(idx AUTOINCREMENT)' +
   ')'
 
-const excelFilePath = './db/map-data.db'
+const createTileTableSQL =
+  'CREATE TABLE IF NOT EXISTS tileTable (' +
+  'idx INTEGER NOT NULL UNIQUE, ' +
+  'tileName TEXT NOT NULL,' +
+  'sceneName TEXT NOT NULL,' +
+  'zIndex TEXT NOT NULL DEFAULT "0",' +
+  'PRIMARY KEY(idx AUTOINCREMENT)' +
+  ')'
 
+const mapDataFilePath = './db/map-data.db'
+const tileDataFilePath = './db/tile-data.db'
+
+const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/"
 class DBbase {
   private mDB: any
 
@@ -38,13 +50,16 @@ class DBbase {
 
   async connectDB(): Promise<TypeDBResponse> {
     try {
-      const createExcelDB = await this.createExcelTable()
+      const createMapDB = await this.createMapDataTable()
+      console.log('createMapDB')
+      const createTileTable = await this.createTileDataTable()
+      
 
-      if (createExcelDB.ok) {
+      if (createMapDB.ok) {
         const read = await this.read()
-        return { ok: read.ok, data: read.data, msg: read.msg }
+        return { ok: read.ok, data: read.data, tileData: createTileTable.data,  msg: `${read.msg}+ ${createTileTable.msg}` }
       } else {
-        return { ok: false, data: createExcelDB.msg  }
+        return { ok: false, data: createMapDB.msg  }
       }
     } catch (e: any) {
       this.mDB = null
@@ -52,43 +67,14 @@ class DBbase {
     }
   }
 
-  async getCommonimgRsc(): Promise<{ok:boolean,msg:string,img:any}> {
-    return new Promise((resolve,_reject)=>{
-      const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc"
-        fs.readdir(path+'/common/img', (error, filelist)=>{
-          if(error) return {ok:false, msg:error,img:[]}
-          return resolve({ok:true, msg: '공통 이미지 로드 완료',img: filelist})
-        })
-    })
-  }
-
-  async getCommonRsc(): Promise<{ok:boolean,msg:string,img:any, sound?:any}> {
-    return await this.getCommonimgRsc()
-  }
-
-  async getEditorImgRsc(): Promise<{ok:boolean,msg:string,img:any}> {
-    return new Promise((resolve,_reject)=>{
-    const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc"
-    fs.readdir(path+'/map-editor/img', (error, filelist)=>{
-      if(error) return {ok:false, msg:error,img:[]}
-        return resolve({ok:true, msg: '에디터 이미지 로드 완료',img: filelist})
-      })
-    })
-  }
-
-  async getEditorRsc(): Promise<{ok:boolean,msg:string,img:any, sound?:any}> {
-    return  await this.getEditorImgRsc() 
-  }
-
-  async createExcelTable(): Promise<TypeDBResponse> {
+   async createMapDataTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       const bindDB = () => {
-        console.log(excelFilePath)
-        this.mDB = new sqlite3.Database(excelFilePath, (e) => {
+        this.mDB = new sqlite3.Database(mapDataFilePath, (e) => {
           console.log('DB ERROR', e)
         })
         this.mDB.run(createTableSQL, () => {
-          resolve({ ok: true, data: [], msg: 'DB 생성 완료' })
+          resolve({ ok: true, data: [], msg: 'Map Data DB 생성 완료' })
         })
       }
 
@@ -96,7 +82,60 @@ class DBbase {
         if (!fs.existsSync('./db')) {
           fs.mkdirSync('./db')
         }
-        fs.writeFileSync(excelFilePath, '', { flag: 'wx' })
+        fs.writeFileSync(mapDataFilePath, '', { flag: 'wx' })
+
+        bindDB()
+      } catch (e) {
+        const error = e as any
+
+        switch (error.code) {
+          case 'EEXIST':
+            bindDB()
+            break
+          default:
+            this.mDB = null
+            resolve({ ok: false, msg: error.message })
+            break
+        }
+      }
+    })
+  }
+
+  async createTileDataTable(): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const bindDB = () => {
+        console.log({tileDataFilePath})
+        this.mDB = new sqlite3.Database(tileDataFilePath, (e) => {
+          console.log('DB ERROR', e)
+        })
+        this.mDB.run(createTileTableSQL, async () => {
+          const rscList = {common:[],'map-editor':[]} as {[key: string]: string[]}
+          
+          await fs.readdir(`${path}map-editor/img/`, async (error, filelist) =>{
+            if(error) return
+            rscList['map-editor'] = filelist
+            for(const tileName of rscList['map-editor']) await this.insertTile({tileName,sceneName:'map-editor'})
+            await fs.readdir(`${path}common/img/`, async (error, filelist) =>{
+              if(error) return
+              rscList['common'] = filelist
+              for(const tileName of rscList['common']) await this.insertTile({tileName,sceneName:'common'})
+              const { data } = await this.getTile()
+      
+                resolve({ ok: true, data, msg: 'Tile Data DB 생성 완료' })
+            });
+          });
+
+
+          
+
+        })
+      }
+
+      try {
+        if (!fs.existsSync('./db')) {
+          fs.mkdirSync('./db')
+        }
+        fs.writeFileSync(tileDataFilePath, '', { flag: 'wx' })
 
         bindDB()
       } catch (e) {
@@ -134,6 +173,7 @@ class DBbase {
       try {
         this.mDB.all(sql, [], (err: any, rows: []) => {
           if (err) {
+            console.log(err)
             return resolve({ ok: false, data, msg: err })
           }
 
@@ -219,6 +259,68 @@ class DBbase {
     } catch (e: any) {
       return { ok: false, msg: e.message }
     }
+  }
+
+  async getTile(): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const sql = 'SELECT * FROM tileTable ORDER BY idx ASC'
+      const data = []
+      try {
+        this.mDB.all(sql, [], (err: any, rows: []) => {
+          if (err) {
+            return resolve({ ok: false, data, msg: err })
+          }
+
+          rows.forEach((row) => {
+            data.push(row)
+          })
+          resolve({ ok: true, data, msg: 'DB조회 성공' })
+        })
+      } catch (e: any) {
+        const msg = this.mDB ? e.message : 'DB연결이 안되어 있습니다.'
+        resolve({ ok: false, msg, data: [] })
+      }
+    })
+  }
+
+  async insertTile({tileName, sceneName}:{tileName: string,sceneName: string}) :Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      try {
+
+        const sql = `SELECT * FROM tileTable WHERE tileName = "${tileName}"`
+        this.mDB.all(sql, [], (err: any, rows: []) => {
+          if (err) {
+            resolve({ ok: false, msg: err })
+            return
+          }
+          if( rows && rows.length>0 ){
+            resolve({ ok: false, data: rows, msg: '중복된 이름이 있습니다.' })
+            return
+          }
+
+          const insertSQL = `
+            INSERT INTO tileTable
+            ( tileName, sceneName )
+            VALUES
+            ( "${tileName}","${sceneName}" )
+          `
+          this.mDB.run(insertSQL, (err) => {
+            if (err) {
+              console.error(err.message)
+              resolve({ ok: false, msg: err.message })
+            } else {
+              console.log(`타일 [ ${tileName},${sceneName} ] 추가 성공`)
+              resolve({ ok: true, msg: '타일 데이터 추가 성공' })
+            }
+          })
+        })
+        
+
+       
+      } catch (e: any) {
+        resolve({ ok: false, msg: `저장 실패` })
+      }
+    })
   }
 }
 

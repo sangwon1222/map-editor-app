@@ -1,13 +1,5 @@
 import * as PIXI from 'pixi.js';
 import { getOneTilePoints } from '@/util/editorFc';
-import { find } from 'lodash-es';
-import { useItemStore } from '@/store/item';
-import { rscManager } from '@/app/resource/resourceManager';
-import MapLayer from './mapLayer';
-import App from '@/app/app';
-import MapEditor from './mapEditor';
-import gsap from 'gsap';
-import { useMapStore } from '@/store/map';
 
 /**
  * @description x,y => 2차배열의 x,y 좌표

@@ -56,27 +56,24 @@ const api = {
       ipcRenderer.invoke('recreateDB').then((result) => resolve(result) )
     })
   },
+
+  getTile: async () => {
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('getTile').then((result) => resolve(result) )
+    })
+  },
+  insertTile: async (tileName: string,sceneName: string) => {
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('insertTile',{tileName,sceneName }).then((result) => resolve(result) )
+    })
+  },
+  
   
   updateRsc: async (rscObj: string, sceneName:string)=>{
     return new Promise((resolve, _reject) => {
       ipcRenderer.invoke('updateRsc',{ rscObj, sceneName }).then((result) => resolve(result) )
     })
   },
-
-  getCommonRsc: async ()=>{
-    return new Promise((resolve, _reject) => {
-      ipcRenderer.invoke('getCommonRsc').then((result) => resolve(result) )
-    })
-  },
-
-  getEditorRsc: async ()=>{
-    return new Promise((resolve, _reject) => {
-      ipcRenderer.invoke('getEditorRsc').then((result) => {
-        resolve(result)
-      } )
-    })
-  },
-
 
 }
 
@@ -94,10 +91,10 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = api as TypdApi
+  window.api = api as TypeApi
 }
 
-interface TypdApi {
+interface TypeApi {
   sendGmail: any
   connectDB: any
   readDB: any
@@ -106,14 +103,13 @@ interface TypdApi {
   recreateDB: any
   updateDB: any
   updateRsc: any
-  getCommonRsc: any
-  getEditorRsc: any
-  updateEditorRsc:any
+  insertTile:any
+  getTile:any
 }
 
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: TypdApi
+    api: TypeApi
   }
 }

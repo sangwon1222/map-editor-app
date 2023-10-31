@@ -5,11 +5,8 @@ import * as PIXI from 'pixi.js';
 import gsap from 'gsap';
 import EditItem from './editItem';
 import Button from './button';
-import { find, map } from 'lodash-es';
-
-import totalImg from '../../resource/resouce.json';
-import { useItemStore } from '@/store/item';
-const resourceList = totalImg['map-editor'].img;
+import { map } from 'lodash-es';
+import { useTileStore } from '@/store/tile';
 
 const toolWidth = 400;
 export default class EditTool extends PIXI.Container {
@@ -53,13 +50,13 @@ export default class EditTool extends PIXI.Container {
   async drawItem() {
     this.mSpriteList = [];
     let colId = 0;
-    for (let i = 0; i < resourceList.length; i++) {
+    for (let i = 0; i < useTileStore.itemData.length; i++) {
       const gap = 20;
       const rowId = i % 3 ? 1 : 0;
       if (rowId === 0 && i > 0) colId += 1;
 
-      const itemId = find(useItemStore.itemData, (e) => e.name === resourceList[i])?.id;
-      const editItems = new EditItem(itemId, resourceList[i]);
+      const itemId = useTileStore.itemData[i].id;
+      const editItems = new EditItem(itemId, useTileStore.itemData[i].tileName);
       editItems.init();
       this.mSpriteList.push(editItems);
       this.sortableChildren = true;
