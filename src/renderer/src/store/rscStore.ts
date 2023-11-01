@@ -1,12 +1,8 @@
 import { reactive } from 'vue';
 
-export const useRscStore: TypeRscListStore = reactive({
-    "common":{
-        img:[]
-      },
+export const useRscStore: any = reactive({
+    "common":[],
 
-    "map-editor":{
-        img:[]
-    }
+    "map-editor":[]
 
 });

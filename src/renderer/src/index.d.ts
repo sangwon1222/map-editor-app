@@ -13,9 +13,7 @@ declare interface TypeItemStore {
 declare interface TypeLocalStore {
   [key: string]: string
 }
-declare interface TypeRscListStore {
-  [key: string]: { [key: string]: string[] }
-}
+
 declare interface TypeMapStore {
   mapInit: any;
   mapJson: any;

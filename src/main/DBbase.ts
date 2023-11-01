@@ -27,8 +27,7 @@ const createTileTableSQL =
   'PRIMARY KEY(idx AUTOINCREMENT)' +
   ')'
 
-const mapDataFilePath = './db/map-data.db'
-const tileDataFilePath = './db/tile-data.db'
+const dataFilePath = './db/editor-data.db'
 
 const path = "C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/"
 class DBbase {
@@ -70,8 +69,8 @@ class DBbase {
    async createMapDataTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       const bindDB = () => {
-        this.mDB = new sqlite3.Database(mapDataFilePath, (e) => {
-          console.log('DB ERROR', e)
+        this.mDB = new sqlite3.Database(dataFilePath, (e) => {
+          if(e) console.log('DB ERROR', e)
         })
         this.mDB.run(createTableSQL, () => {
           resolve({ ok: true, data: [], msg: 'Map Data DB 생성 완료' })
@@ -82,7 +81,7 @@ class DBbase {
         if (!fs.existsSync('./db')) {
           fs.mkdirSync('./db')
         }
-        fs.writeFileSync(mapDataFilePath, '', { flag: 'wx' })
+        fs.writeFileSync(dataFilePath, '', { flag: 'wx' })
 
         bindDB()
       } catch (e) {
@@ -104,10 +103,8 @@ class DBbase {
   async createTileDataTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       const bindDB = () => {
-        console.log({tileDataFilePath})
-        this.mDB = new sqlite3.Database(tileDataFilePath, (e) => {
-          console.log('DB ERROR', e)
-        })
+        this.mDB = new sqlite3.Database(dataFilePath, (e) => e ? console.log('DB ERROR', e) : null )
+
         this.mDB.run(createTileTableSQL, async () => {
           const rscList = {common:[],'map-editor':[]} as {[key: string]: string[]}
           
@@ -124,10 +121,6 @@ class DBbase {
                 resolve({ ok: true, data, msg: 'Tile Data DB 생성 완료' })
             });
           });
-
-
-          
-
         })
       }
 
@@ -135,7 +128,7 @@ class DBbase {
         if (!fs.existsSync('./db')) {
           fs.mkdirSync('./db')
         }
-        fs.writeFileSync(tileDataFilePath, '', { flag: 'wx' })
+        fs.writeFileSync(dataFilePath, '', { flag: 'wx' })
 
         bindDB()
       } catch (e) {
@@ -168,7 +161,8 @@ class DBbase {
 
   async read(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const sql = 'SELECT * FROM mapData ORDER BY idx ASC'
+      // const sql = 'SELECT * FROM mapData ORDER BY idx ASC'
+      const sql = 'SELECT * FROM mapData'
       const data = []
       try {
         this.mDB.all(sql, [], (err: any, rows: []) => {

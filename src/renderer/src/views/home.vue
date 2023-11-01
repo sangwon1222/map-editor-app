@@ -4,7 +4,7 @@ import { onMounted } from 'vue'
 import { useMapStore } from '@/store/map'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
-import { filter, find } from 'lodash-es'
+import { find, map } from 'lodash-es'
 import { useLocalStore } from '@/store/localStorage'
 import { useRscStore } from '@/store/rscStore'
 import { setEncode } from '@/util'
@@ -17,14 +17,11 @@ onMounted(async () => {
   localStorage.removeItem(useLocalStore['selectMapId'])
 
   const {ok,msg,data, tileData} = await window.api.connectDB()
-  console.log('DB',{ok,msg,data,tileData})
-  useRscStore.common.img = filter(tileData,e=> e.sceneName==='common' )
-  useRscStore['map-editor'].img = filter(tileData,e=> e.sceneName==='map-editor')
-
-  const test = await window.api.readDB()
-  console.log(test)
-
+  console.log('DB',{ok,msg,data})
+  
+  
   if(ok) {
+    map(tileData,e=> useRscStore[e.sceneName].push(e) )
     useMapStore.totalMap = data.length
     useMapStore.totalMapData = data
   } else{ 
@@ -103,4 +100,3 @@ const deleteAllDB =async ()=>{
     </ul>
   </div>
 </template>
-@/store/resource

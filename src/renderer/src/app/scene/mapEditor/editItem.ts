@@ -16,6 +16,7 @@ export default class EditItem extends PIXI.Container {
 
   constructor(itemId: number, textureName: string) {
     super();
+    console.log()
     this.mItemId = itemId;
     this.mTextureName = textureName;
 

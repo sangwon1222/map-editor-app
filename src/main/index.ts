@@ -85,31 +85,25 @@ function createWindow(): void {
         const rscPath = rscObject[rscName]
         
         console.log({rscName,rscPath})
-        fs.readFile(rscPath,(err,data)=>{
+        fs.readFileSync(rscPath,(err,data)=>{
           if(err){
             console.log({readError: err})
             return 
           }
-
-          //const serverPath = `C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/${sceneName}/img/${rscName}`
-          const serverPath = `http://lsw.kr/rsc/${sceneName}/img/${rscName}`
+          const serverPath = `C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/${sceneName}/img/${rscName}`
           const isExist = fs.existsSync(serverPath)
-          console.log({isExist})
-          
           if(isExist) result.push(rscName)
           if(!isExist) {
-            // const buffer = Buffer.from(data).toString('base64');
             const buffer = Buffer.from(data,'base64')
-            console.log(buffer)
-
-            fs.writeFile(
+            fs.writeFileSync(
               serverPath,
               buffer,
-              (err,_data)=>{
-                
+              async (err,_data)=>{
                 if(err){
                   console.log({writeError:err})
                   result.push(rscName)
+                }else{
+                  await DBbase.insertTile({tileName: rscName, sceneName})
                 }
               }
             );

@@ -1,12 +1,12 @@
+import * as PIXI from 'pixi.js';
 import { rscManager } from '@/app/resource/resourceManager';
+import { useRscStore } from '@/store/rscStore';
 import { canvasInfo } from '@/util/config';
 import MapEditor from './mapEditor';
-import * as PIXI from 'pixi.js';
-import gsap from 'gsap';
 import EditItem from './editItem';
-import Button from './button';
 import { map } from 'lodash-es';
-import { useTileStore } from '@/store/tile';
+import Button from './button';
+import gsap from 'gsap';
 
 const toolWidth = 400;
 export default class EditTool extends PIXI.Container {
@@ -47,35 +47,10 @@ export default class EditTool extends PIXI.Container {
     this.mSpriteLayer.addChild(bg);
   }
 
-  async drawItem() {
-    this.mSpriteList = [];
-    let colId = 0;
-    for (let i = 0; i < useTileStore.itemData.length; i++) {
-      const gap = 20;
-      const rowId = i % 3 ? 1 : 0;
-      if (rowId === 0 && i > 0) colId += 1;
-
-      const itemId = useTileStore.itemData[i].id;
-      const editItems = new EditItem(itemId, useTileStore.itemData[i].tileName);
-      editItems.init();
-      this.mSpriteList.push(editItems);
-      this.sortableChildren = true;
-
-      const bgWidth = this.mSpriteList[i].width;
-      const bgHeight = this.mSpriteList[i].height;
-      const x = i % 3 ? rowId * (this.mSpriteList[i - 1].x + bgWidth) : 10;
-      const y = colId * bgHeight + 10 ;
-
-      this.mSpriteList[i].position.set(x + gap / 2, y + gap / 2);
-      this.mSpriteList[i].zIndex = 2;
-      this.mSpriteLayer.addChild(this.mSpriteList[i]);
-    }
-  }
-
-  async drawChevron() {
+  private async drawChevron() {
     const scrWidth = canvasInfo.width;
 
-    this.mChevron = new Button(rscManager.getHandle.getRsc('chevron.png', true), true);
+    this.mChevron = new Button(rscManager.getHandle.getRsc('chevron.png', 'common'), true);
     this.mChevron.rotation = (90 * Math.PI) / 180;
     this.mChevron.zIndex = 2;
     this.mChevron.position.set(scrWidth -this.mChevron.width, this.mChevron.height);
@@ -92,6 +67,41 @@ export default class EditTool extends PIXI.Container {
 
     this.addChild(this.mChevron);
   }
+
+  private async drawItem() {
+    this.mSpriteList = [];
+    let colId = 0;
+    
+    for (let i = 0; i < useRscStore['map-editor'].length; i++) {
+      const gap = 20;
+      const rowId = i % 3 ? 1 : 0;
+      if (rowId === 0 && i > 0) colId += 1;
+
+      const itemId = useRscStore['map-editor'][i].idx;
+      const editItems = new EditItem(itemId, useRscStore['map-editor'][i].tileName);
+      editItems.init();
+      this.mSpriteList.push(editItems);
+      this.sortableChildren = true;
+
+      const bgWidth = this.mSpriteList[i].width;
+      const bgHeight = this.mSpriteList[i].height;
+      const x = i % 3 ? rowId * (this.mSpriteList[i - 1].x + bgWidth) : 10;
+      const y = colId * bgHeight + 10 ;
+
+      this.mSpriteList[i].position.set(x + gap / 2, y + gap / 2);
+      this.mSpriteList[i].zIndex = 2;
+      this.mSpriteLayer.addChild(this.mSpriteList[i]);
+    }
+  }
+
+  private async drawPosBtn() {
+    this.mMapPosBtn = new Button(rscManager.getHandle.getRsc('pos-icon.png', 'common'), true);
+    this.mMapPosBtn.zIndex = 2;
+    this.mMapPosBtn.position.set(canvasInfo.width - this.mMapPosBtn.width * 2, this.mMapPosBtn.height);
+    this.mMapPosBtn.eventMode = 'static';
+    this.mMapPosBtn.onDown = () => this.resetMapLayerPos();
+  }
+
 
   open(){
     this.mOpenSpriteLayer = true
@@ -117,13 +127,6 @@ export default class EditTool extends PIXI.Container {
       gsap.to(this.mChevron, { x: openPos, rotation: radian, duration: 0.5 });
   }
 
-  async drawPosBtn() {
-    this.mMapPosBtn = new Button(rscManager.getHandle.getRsc('pos-icon.png', true), true);
-    this.mMapPosBtn.zIndex = 2;
-    this.mMapPosBtn.position.set(canvasInfo.width - this.mMapPosBtn.width * 2, this.mMapPosBtn.height);
-    this.mMapPosBtn.eventMode = 'static';
-    this.mMapPosBtn.onDown = () => this.resetMapLayerPos();
-  }
 
   private resetMapLayerPos() {
     const mapLayer = (this.parent as MapEditor).mapLayer;

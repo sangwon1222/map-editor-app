@@ -34,7 +34,7 @@ export default class SceneManager extends PIXI.Container {
     const { name } = this.mSceneAry[0].info;
     try {
       
-      await rscManager.getHandle.loadCommonRsc(useRscStore.common);
+      await rscManager.getHandle.loadAllRsc(useRscStore.common);
     } catch (e) {
       console.log(e);
       // location.replace(location.origin);

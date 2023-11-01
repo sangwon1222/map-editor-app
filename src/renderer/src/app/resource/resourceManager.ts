@@ -31,7 +31,6 @@ export class rscManager {
     if (this.mRscObject[`${scene}/${src}`]) return;
 
     const url = `${productLink}rsc/${sceneName}/${rscGroup}/${src}`;
-    console.log(url)
     
     try {
       PIXI.Assets.add({loadParesr:`${scene}/${src}`,src});
@@ -41,17 +40,15 @@ export class rscManager {
     }
   }
 
-  /** @description 배열로 리소스 리스트를 보내주면 모든 리소스 로드하는 함수 */
-  public async loadAllRsc(rscInfoAry: TypeObjectStringAry) {
-    const sceneName = Application.getHandle.getScene?.info?.name;
-    for (const src of rscInfoAry.img) {
-      await this.loadRsc(src, sceneName,'img');
-    }
-  }
-
-  public async loadCommonRsc(rscInfoAry: TypeObjectStringAry) {
-    for (const src of rscInfoAry.img) {
-      await this.loadRsc(src, "common",'img');
+  /** 
+   * @example rscInfoAry=
+   * [
+   *   { idx: 24, tileName: 'chevron.png', sceneName: 'common', zIndex: '0' } 
+   * ]
+  */
+  public async loadAllRsc(rscInfoAry: []) {
+    for (const {_idx,tileName,sceneName,_zIndex } of rscInfoAry) {
+      await this.loadRsc(tileName, sceneName,'img');
     }
   }
 
@@ -60,9 +57,9 @@ export class rscManager {
    * @param common 공동으로 쓰이고 있으면 true, 없으면 안넣어줘도 된다.
    * @returns
    */
-  public getRsc(srcKey: string, common?: boolean) {
-    const sceneName = common ? "common" : Application.getHandle.getScene?.info?.name;
-    const key = `${sceneName}/${srcKey}`;
+  public getRsc(srcKey: string, sceneName?: string) {
+    const scene = sceneName ? sceneName : Application.getHandle.getScene?.info?.name;
+    const key = `${scene}/${srcKey}`;
     if (this.mRscObject[key]) return this.mRscObject[key];
     else {
       console.error(`[${key}] 이미지 없다.`);
