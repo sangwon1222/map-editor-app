@@ -54,7 +54,7 @@ export default class TileSprite extends PIXI.Container {
     if(this.mItemId===itemId) return
     this.mItemId = itemId
     const option = find(useRscStore['map-editor'], (e) => e.idx === this.mItemId);
-    this.mItemSprite.texture = option ? rscManager.getHandle.getRsc(option.name) : null;
+    this.mItemSprite.texture = option ? rscManager.getHandle.getRsc(option.tileName) : null;
     this.mItemSprite.alpha=1
     if (option) {
       this.mItemSprite.anchor.set(0.5);

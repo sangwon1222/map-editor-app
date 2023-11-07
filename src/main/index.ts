@@ -76,26 +76,29 @@ function createWindow(): void {
   ipcMain.handle('updateRsc',async (_event: Electron.IpcMainInvokeEvent, res: any) => {
     const { rscObj, sceneName } = res
     const result = [] as string[]
-    
     const rscObject = JSON.parse(rscObj)
+    const rscObjectKeys = Object.keys(rscObject)
+    
 
     try{
 
-      for(const rscName in rscObject){
+      
+      for(let i = 0; i< rscObjectKeys.length ;i++ ){
+        const rscName = rscObjectKeys[i]
         const rscPath = rscObject[rscName]
         
-        console.log({rscName,rscPath})
-        fs.readFileSync(rscPath,(err,data)=>{
+        await fs.readFile(rscPath,async (err,data)=>{
           if(err){
             console.log({readError: err})
             return 
           }
           const serverPath = `C:/Users/sonid/Desktop/lsw/private_server/mainpage/api/public/rsc/${sceneName}/img/${rscName}`
+
           const isExist = fs.existsSync(serverPath)
           if(isExist) result.push(rscName)
           if(!isExist) {
             const buffer = Buffer.from(data,'base64')
-            fs.writeFileSync(
+            await fs.writeFileSync(
               serverPath,
               buffer,
               async (err,_data)=>{
@@ -106,13 +109,16 @@ function createWindow(): void {
                   await DBbase.insertTile({tileName: rscName, sceneName})
                 }
               }
-            );
-          }
-        })
-
-      }
-      return {ok:true, fail: result.length, result};
+              );
+            }
+          })
+          
+        }
+        
+        return {ok:true, fail: result.length, result};
+      
     } catch(e) {
+      console.log('error',e)
       return {ok:false, fail: result.length, result,msg: e};
     }
 

@@ -119,6 +119,7 @@ const resetUpload=()=>{
   const input = document.getElementById('img-upload-input') as HTMLInputElement;
   input.value = null
 }
+
 const submitImg=async ()=>{
   if( Object.keys(state.rscImgPreview).length < 1) {
     const input = document.getElementById('img-upload-input') as HTMLInputElement;
@@ -132,13 +133,13 @@ const submitImg=async ()=>{
   if(upload.ok) resetUpload()
   
 
-  const tile = await window.api.getTile()
-  if(tile.ok) {
-    map(tile.data,(e)=>) useRscStore
-    console.log(tile.data)
-  }
-  
-  useLayoutStore.isLoading = false
+  // const tile = await window.api.getTile()
+  //   if(tile.ok) {
+  //     map(tile.data,(e)=>{ 
+  //     useRscStore[e.scene].push(e.tileName)
+  //   })
+  // }
+    useLayoutStore.isLoading = false
 }
 
 const goHome =()=> router.push('/')
